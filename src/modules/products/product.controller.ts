@@ -31,21 +31,15 @@ export class ProductController {
   }
 
   @Post()
-  createProduct(
-    @Body(new ValidationPipe()) productDto: ProductDto,
-  ): ResponseData<ProductDto> {
+  createProduct(@Body() productDto: ProductDto): ResponseData<Product> {
     try {
-      return new ResponseData<ProductDto>(
+      return new ResponseData<Product>(
         this.productService.createProduct(productDto),
         HttpStatus.SUCCESS,
         HttpMessage.SUCCESS,
       );
     } catch (error) {
-      return new ResponseData<ProductDto>(
-        [],
-        HttpStatus.ERROR,
-        HttpMessage.ERROR,
-      );
+      return new ResponseData<Product>([], HttpStatus.ERROR, HttpMessage.ERROR);
     }
   }
 
@@ -63,28 +57,47 @@ export class ProductController {
   }
 
   @Put(':id')
-  updateProduct(): ResponseData<string> {
+  updateProduct(
+    @Body() productDto: ProductDto,
+    @Param('id') id: number,
+  ): ResponseData<Product> {
     try {
-      return new ResponseData<string>(
-        this.productService.updateProduct(),
+      const updatedProduct = this.productService.updateProduct(id, productDto);
+      if (!updatedProduct) {
+        return new ResponseData<Product>(
+          [],
+          HttpStatus.ERROR,
+          `Product with ID ${id} not found`,
+        );
+      }
+      return new ResponseData<Product>(
+        updatedProduct,
         HttpStatus.SUCCESS,
         HttpMessage.SUCCESS,
       );
     } catch (error) {
-      return new ResponseData<string>('', HttpStatus.ERROR, HttpMessage.ERROR);
+      return new ResponseData<Product>(
+        [],
+        HttpStatus.ERROR,
+        'Error updating product',
+      );
     }
   }
 
   @Delete(':id')
-  deleteProduct(): ResponseData<string> {
+  deleteProduct(@Param('id') id: number): ResponseData<boolean> {
     try {
-      return new ResponseData<string>(
-        this.productService.deleteProduct(),
+      return new ResponseData<boolean>(
+        this.productService.deleteProduct(id),
         HttpStatus.SUCCESS,
         HttpMessage.SUCCESS,
       );
     } catch (error) {
-      return new ResponseData<string>('', HttpStatus.ERROR, HttpMessage.ERROR);
+      return new ResponseData<boolean>(
+        false,
+        HttpStatus.ERROR,
+        HttpMessage.ERROR,
+      );
     }
   }
 }
